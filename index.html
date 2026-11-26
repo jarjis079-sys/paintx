@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaintX – Paint Quantity Calculator</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2430; --muted:#5f6b7a; --accent:#d9480f; --line:#e2e6ec; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14171c; --card:#1e232b; --text:#e8ecf1; --muted:#9aa5b4; --accent:#ff8a4c; --line:#2f3640; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:20px 16px 8px; max-width:1100px; margin:auto; }
+  h1 { margin:0; color:var(--accent); } header p { margin:4px 0 0; color:var(--muted); }
+  main { max-width:1100px; margin:auto; padding:8px 16px 40px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  h2 { margin:0 0 12px; font-size:1.15rem; }
+  label { display:block; font-size:.82rem; color:var(--muted); margin:10px 0 3px; }
+  input, select { width:100%; padding:8px; font-size:1rem; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .info { font-size:.8rem; color:var(--muted); min-height:1.2em; margin-top:6px; }
+  table { width:100%; border-collapse:collapse; } td, th { padding:6px 4px; border-bottom:1px solid var(--line); text-align:left; font-size:.92rem; }
+  td:last-child { text-align:right; } .result { margin-top:14px; }
+  .warn { color:var(--accent); font-size:.9rem; }
+  .list { margin-top:16px; } .scroll { max-height:340px; overflow:auto; }
+  .list td:last-child { white-space:nowrap; } button { cursor:pointer; border:1px solid var(--accent); background:none; color:var(--accent); border-radius:6px; padding:3px 8px; font-size:.78rem; }
+  button:hover { background:var(--accent); color:#fff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>PaintX</h1>
+  <p>How much paint you need, in drums and gallons – and what it will cost.</p>
+</header>
+<main>
+  <div class="grid">
+    <section class="card" id="interior-card">
+      <h2>Interior</h2>
+      <label>Total floor area (sq ft)</label><input id="interior-floor" type="number" min="0" value="5000">
+      <label>Product</label><select id="interior-product"></select>
+      <div class="info" id="interior-info"></div>
+      <div class="two">
+        <div><label>Coverage basis</label><select id="interior-basis"><option>Minimum</option><option>Average</option><option>Maximum</option></select></div>
+        <div><label>Number of coats</label><input id="interior-coats" type="number" min="1" value="2"></div>
+      </div>
+      <label>Manual coverage override, sq ft per Ltr/Kg (optional)</label><input id="interior-override" type="number" min="0">
+      <label>Price per Litre / Kg (manual entry)</label><input id="interior-price" type="number" min="0" placeholder="e.g. 420">
+      <div class="result" id="interior-result"></div>
+    </section>
+
+    <section class="card" id="exterior-card">
+      <h2>Exterior</h2>
+      <label>Total floor area (sq ft)</label><input id="exterior-floor" type="number" min="0" value="100">
+      <div class="two">
+        <div><label>Wall height (ft)</label><input id="exterior-height" type="number" min="0" value="10"></div>
+        <div><label>Parapet wall height (ft)</label><input id="exterior-parapet" type="number" min="0" value="3"></div>
+      </div>
+      <label>Product</label><select id="exterior-product"></select>
+      <div class="info" id="exterior-info"></div>
+      <div class="two">
+        <div><label>Coverage basis</label><select id="exterior-basis"><option>Minimum</option><option>Average</option><option>Maximum</option></select></div>
+        <div><label>Number of coats</label><input id="exterior-coats" type="number" min="1" value="2"></div>
+      </div>
+      <label>Manual coverage override, sq ft per Ltr/Kg (optional)</label><input id="exterior-override" type="number" min="0">
+      <label>Price per Litre / Kg (manual entry)</label><input id="exterior-price" type="number" min="0" placeholder="e.g. 520">
+      <div class="result" id="exterior-result"></div>
+    </section>
+  </div>
+
+  <section class="card list">
+    <h2>Product search</h2>
+    <input id="search" type="search" placeholder="Search products, e.g. putty, sealer, WeatherCoat…">
+    <p class="info" id="count"></p>
+    <div class="scroll"><table>
+      <thead><tr><th>Product</th><th>Coverage (1 coat)</th><th>Unit</th><th>Use for</th></tr></thead>
+      <tbody id="plist"></tbody>
+    </table></div>
+  </section>
+</main>
+<script src="products.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

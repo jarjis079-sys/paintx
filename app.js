@@ -1,30 +1,29 @@
 // PaintX – calculation + UI. Formulas follow the Excel "Calculator" sheet.
-const CFG = { interiorMult: 3.5, deduction: 0.15, sides: 4, drum: 18, gallon: 3.64, currency: "৳", slots: 3 };
+const CFG = { interiorMult: 3.5, deduction: 0.15, sides: 4, drum: 18, gallon: 3.64, currency: "৳", slots: { interior: 5, exterior: 3 } };
 const r6 = (x) => Math.round(x * 1e6) / 1e6;
 const num = (v) => (v === "" || v == null || isNaN(Number(v)) ? null : Number(v));
 const byName = (n) => PRODUCTS.find((p) => p.name.toLowerCase() === String(n).trim().toLowerCase());
 const avg = (p) => (num(p.min) === null ? null : (p.min + p.max) / 2);
-const cov = (p, basis) => (num(p.min) === null ? null : basis === "min" ? p.min : basis === "max" ? p.max : avg(p));
 
 function split(needed) {                       // litres -> drums + gallons (remainder rounded up to whole gallons)
   const drums = Math.floor(r6(needed / CFG.drum));
   const gallons = Math.ceil(r6((needed - drums * CFG.drum) / CFG.gallon));
   return { drums, gallons };
 }
-function price(r, drumP, galP) {               // null unless every needed price is entered
-  if ((r.drums && drumP === null) || (r.gallons && galP === null)) return null;
-  return r.drums * (drumP || 0) + r.gallons * (galP || 0);
+function price(r, d, g) {                      // one price is enough; the other is derived from it
+  if (d === null && g === null) return null;
+  const dp = d ?? (g / CFG.gallon) * CFG.drum, gp = g ?? (d / CFG.drum) * CFG.gallon;
+  return r.drums * dp + r.gallons * gp;
 }
-function calcRow(p, area, coats, basis, drumP, galP) {
-  const c = cov(p, basis);
-  if (c === null) return { msg: "No coverage data in TDS" };
+function calcRow(p, area, coats, c, drumP, galP) {   // c = coverage (sq ft per L/Kg)
+  if (c === null) return { msg: "Enter a coverage" };
   if (area === null || coats === null) return { msg: "Enter measurements & coats" };
   const needed = (area / c) * coats;
   if (p.unit === "SFT/Kg") return { needed, kg: Math.ceil(r6(needed)), msg: "Sold by weight" };
   const r = split(needed);
   return { needed, ...r, cost: price(r, drumP, galP) };
 }
-if (typeof module !== "undefined") module.exports = { calcRow, split, cov };
+if (typeof module !== "undefined") module.exports = { calcRow, split, price };
 
 if (typeof document !== "undefined") {
   const $ = (id) => document.getElementById(id);
@@ -43,9 +42,10 @@ if (typeof document !== "undefined") {
   function buildRows() {
     SIDES.forEach((s) => {
       let h = "";
-      for (let i = 0; i < CFG.slots; i++) h += `<div class="prow">
+      for (let i = 0; i < CFG.slots[s]; i++) h += `<div class="prow">
         <span class="num">${i + 1}</span>
         <label class="fprod">Product<input id="${s}-p${i}" list="plist" placeholder="Type to search…" autocomplete="off"></label>
+        <label>Coverage<input id="${s}-v${i}" type="number" min="0" step="any" placeholder="sq ft/L"></label>
         <label>Coats<input id="${s}-c${i}" type="number" min="1" placeholder="2"></label>
         <label>Drum price<input id="${s}-d${i}" type="number" min="0" placeholder="18 L"></label>
         <label>Gallon price<input id="${s}-g${i}" type="number" min="0" placeholder="3.64 L"></label></div>`;
@@ -54,16 +54,21 @@ if (typeof document !== "undefined") {
     $("plist").innerHTML = PRODUCTS.map((p) => `<option value="${p.name.replace(/"/g, "&quot;")}">`).join("");
   }
 
+  function setCov(s, i) {                        // default coverage = product average (user can overwrite)
+    const p = byName($(`${s}-p${i}`).value), a = p ? avg(p) : null;
+    $(`${s}-v${i}`).value = a === null ? "" : a;
+  }
+
   function renderReq() {
-    const A = areas(), basis = "avg";
+    const A = areas();
     let grand = 0, grandOk = false;
     SIDES.forEach((s) => {
       let rows = "", total = 0, any = false, missing = false;
-      for (let i = 0; i < CFG.slots; i++) {
+      for (let i = 0; i < CFG.slots[s]; i++) {
         const name = $(`${s}-p${i}`).value, p = byName(name);
         $(`${s}-p${i}`).classList.toggle("bad", name.trim() !== "" && !p);
         if (!p) continue;
-        const r = calcRow(p, A[s], num($(`${s}-c${i}`).value), basis, num($(`${s}-d${i}`).value), num($(`${s}-g${i}`).value));
+        const r = calcRow(p, A[s], num($(`${s}-c${i}`).value), (num($(`${s}-v${i}`).value) ?? avg(p)), num($(`${s}-d${i}`).value), num($(`${s}-g${i}`).value));
         if (r.drums === undefined) {
           rows += `<tr><td>${p.name}</td>${r.kg ? `<td colspan="2">${r.kg} Kg required <em>(${r.msg})</em></td>` : `<td colspan="2"><em>${r.msg}</em></td>`}<td>–</td></tr>`;
           continue;
@@ -94,12 +99,16 @@ if (typeof document !== "undefined") {
 
   document.addEventListener("DOMContentLoaded", () => {
     buildRows(); renderList(); renderReq();
-    document.addEventListener("input", renderReq);
+    document.addEventListener("input", (e) => {
+      const m = /^(interior|exterior)-p(\d)$/.exec(e.target.id);
+      if (m) setCov(m[1], m[2]);
+      renderReq();
+    });
     $("search").addEventListener("input", renderList);
     $("ptable").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
-      const slot = [...Array(CFG.slots).keys()].find((i) => !$(`${b.dataset.s}-p${i}`).value) ?? CFG.slots - 1;
-      $(`${b.dataset.s}-p${slot}`).value = b.dataset.n; renderReq();
+      const slot = [...Array(CFG.slots[b.dataset.s]).keys()].find((i) => !$(`${b.dataset.s}-p${i}`).value) ?? CFG.slots[b.dataset.s] - 1;
+      $(`${b.dataset.s}-p${slot}`).value = b.dataset.n; setCov(b.dataset.s, slot); renderReq();
       $(b.dataset.s).scrollIntoView({ behavior: "smooth" });
     });
     document.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => {

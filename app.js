@@ -60,7 +60,7 @@ if (typeof document !== "undefined") {
   }
 
   function renderReq() {
-    const A = areas(), basis = document.querySelector("input[name=basis]:checked").value;
+    const A = areas(), basis = "avg";
     let grand = 0, grandOk = false;
     SIDES.forEach((s) => {
       let rows = "", total = 0, any = false, missing = false;

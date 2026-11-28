@@ -45,6 +45,12 @@ td b{font-size:1.15rem;color:var(--p)}.empty,em{color:var(--mut)}@keyframes in{f
 #search{font-size:1.05rem;padding:12px 14px;margin-bottom:6px}.count{color:var(--mut);font-size:.85rem;margin:0 0 8px}
 #ptable{max-height:420px}.act{white-space:nowrap;text-align:right}.act button{border:0;border-radius:16px;padding:5px 10px;margin-left:4px;font-size:.75rem;font-weight:700;cursor:pointer;color:#fff;background:var(--c)}.act button+button{background:var(--r)}.act button:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .tbl{max-height:420px;overflow:auto}.tbl th{position:sticky;top:0;background:#fff}
+.credits{background:#fff;text-align:center;padding:20px 16px 22px;border-bottom:1px solid var(--line);animation:in .6s}
+.cred-title{font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:8px}
+.lead b{display:block;font-size:1.75rem;color:var(--p);line-height:1.2}.lead span{color:var(--mut);font-size:.92rem;font-weight:600}
+.team{display:flex;justify-content:center;flex-wrap:wrap;gap:14px 30px;margin-top:16px}
+.mem{padding-top:8px;border-top:3px solid var(--c);min-width:170px}.mem:nth-child(1){border-color:var(--y)}.mem:nth-child(2){border-color:var(--r)}
+.mem b{display:block;font-size:1.02rem}.mem span{font-size:.78rem;color:var(--mut)}
 footer{text-align:center;color:var(--mut);font-size:.8rem;padding:0 16px 30px}
 @media(max-width:760px){.two{grid-template-columns:1fr}.prow{grid-template-columns:28px 1fr 1fr}.prow .fprod{grid-column:2/4}.hero h1{font-size:1.8rem}nav b{display:none}}
 </style>
@@ -52,6 +58,13 @@ footer{text-align:center;color:var(--mut);font-size:.8rem;padding:0 16px 30px}
 <body>
 <nav><img src="logo.png" alt="Berger"><b>Paint<span>X</span></b>
 <a href="#measure">Measurement</a><a href="#interior">Interior</a><a href="#exterior">Exterior</a><a href="#requirements">Requirement</a><a href="#products">Products</a></nav>
+<div class="credits"><div class="cred-title">Developed By</div>
+<div class="lead"><b>Md. Zahidul Hasan</b><span>TM – Chittagong Sales</span></div>
+<div class="team">
+<div class="mem"><b>Jarjis Ibne Arshad</b><span>Intern – Chittagong Sales</span></div>
+<div class="mem"><b>Nobosree Das</b><span>Intern – Chittagong Sales</span></div>
+<div class="mem"><b>Jannatul Mawa</b><span>Intern – Chittagong Sales</span></div>
+</div></div>
 <div class="hero"><h1>Paint Quantity Calculator</h1><p>Enter your building size, pick your products for inside and outside, and see exactly how many drums and gallons you need.</p></div>
 <main>
 <section id="measure"><h2><i>1</i>Building Measurement</h2><p class="sub">Interior and exterior painting areas are worked out for you.</p>

@@ -6,19 +6,14 @@ const byName = (n) => PRODUCTS.find((p) => p.name.toLowerCase() === String(n).tr
 const avg = (p) => (num(p.min) === null ? null : (p.min + p.max) / 2);
 const cov = (p, basis) => (num(p.min) === null ? null : basis === "min" ? p.min : basis === "max" ? p.max : avg(p));
 
-function split(needed) {                       // litres -> drums / gallons / loose litres
+function split(needed) {                       // litres -> drums + gallons (remainder rounded up to whole gallons)
   const drums = Math.floor(r6(needed / CFG.drum));
-  const rem = r6(needed - drums * CFG.drum);
-  let gallons = Math.floor(r6(rem / CFG.gallon));
-  const rem2 = r6(rem - gallons * CFG.gallon);
-  let loose = Math.ceil(rem2);
-  if (loose > CFG.gallon) { gallons++; loose = 0; }
-  return { drums, gallons, loose };
+  const gallons = Math.ceil(r6((needed - drums * CFG.drum) / CFG.gallon));
+  return { drums, gallons };
 }
 function price(r, drumP, galP) {               // null unless every needed price is entered
-  const perL = galP !== null ? galP / CFG.gallon : drumP !== null ? drumP / CFG.drum : null;
-  if ((r.drums && drumP === null) || (r.gallons && galP === null) || (r.loose && perL === null)) return null;
-  return r.drums * (drumP || 0) + r.gallons * (galP || 0) + r.loose * (perL || 0);
+  if ((r.drums && drumP === null) || (r.gallons && galP === null)) return null;
+  return r.drums * (drumP || 0) + r.gallons * (galP || 0);
 }
 function calcRow(p, area, coats, basis, drumP, galP) {
   const c = cov(p, basis);
@@ -70,14 +65,14 @@ if (typeof document !== "undefined") {
         if (!p) continue;
         const r = calcRow(p, A[s], num($(`${s}-c${i}`).value), basis, num($(`${s}-d${i}`).value), num($(`${s}-g${i}`).value));
         if (r.drums === undefined) {
-          rows += `<tr><td>${p.name}</td>${r.kg ? `<td colspan="3">${r.kg} Kg required <em>(${r.msg})</em></td>` : `<td colspan="3"><em>${r.msg}</em></td>`}<td>–</td></tr>`;
+          rows += `<tr><td>${p.name}</td>${r.kg ? `<td colspan="2">${r.kg} Kg required <em>(${r.msg})</em></td>` : `<td colspan="2"><em>${r.msg}</em></td>`}<td>–</td></tr>`;
           continue;
         }
         any = true;
         if (r.cost === null) missing = true; else total += r.cost;
-        rows += `<tr><td>${p.name}<small>${f(r.needed)} L needed</small></td><td><b>${r.drums}</b></td><td><b>${r.gallons}</b></td><td>${r.loose} L</td><td>${r.cost === null ? "–" : money(r.cost)}</td></tr>`;
+        rows += `<tr><td>${p.name}</td><td><b>${r.drums}</b></td><td><b>${r.gallons}</b></td><td>${r.cost === null ? "–" : money(r.cost)}</td></tr>`;
       }
-      $(s + "-req").innerHTML = rows || `<tr><td colspan="5" class="empty">Select a product above to see the requirement.</td></tr>`;
+      $(s + "-req").innerHTML = rows || `<tr><td colspan="4" class="empty">Select a product above to see the requirement.</td></tr>`;
       $(s + "-total").textContent = any && !missing ? money(total) : "–";
       if (any && !missing) { grand += total; grandOk = true; }
     });
